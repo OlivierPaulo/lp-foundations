@@ -1,0 +1,24 @@
+[project]
+name = "lp-foundations"
+version = "0.0.1"
+readme = "README.md"
+requires-python = ">=3.8"
+description = "Foundations Learning Path"
+authors = [
+    {name = "Olivier Paulo<olivier@daredata.engineering>"}
+]
+dependencies = ["pandas"]
+
+[project.optional-dependencies]
+dev = ["pytest", "pylint", "pytest-cov"]
+
+[tool.setuptools]
+packages = ["life_expectancy"]
+
+[tool.coverage.run]
+omit = [
+    "*/conftest.py", "*/test*", # omit test files
+]
+
+[tool.coverage.report]
+fail_under = 80
