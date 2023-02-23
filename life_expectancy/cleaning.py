@@ -22,21 +22,25 @@ def apply_unpivot(data_frame: pd.DataFrame) -> pd.DataFrame:
                         frame=data_frame,
                         id_vars=id_vars
                     )
-    unpivot_df[id_vars.split(',')] = unpivot_df[id_vars].str.split(',', expand=True)
+    unpivot_df[id_vars.split(',')] = unpivot_df[id_vars].str \
+                                                        .split(',', expand=True)
     unpivot_df[col_names] = pd.concat([unpivot_df[id_vars.split(',')],
-                                       unpivot_df[['variable', 'value']]],axis=1)
+                                       unpivot_df[['variable', 'value']]], axis=1)
     return unpivot_df[col_names]
 
 
 def apply_data_types(data_frame: pd.DataFrame) -> pd.DataFrame:
-    """Ensure data types defines by type_rules and remove NaNs for requested cols"""
+    """Ensure data types defined by type_rules
+       Remove NaNs for requested cols"""
     types_rules: Dict[str, object] = {'year': int, 'value': float}
     cols_to_delete:  List[str] = ['value']
     for column, data_type in types_rules.items():
-        data_frame[column] = pd.to_numeric(data_frame[column].str.extractall(r'(\d+.\d+)')
-                                                .astype(data_type).unstack()
-                                                .max(axis=1),
-                                            errors='coerce')
+        data_frame[column] = pd.to_numeric(
+                                data_frame[column].str.extractall(r'(\d+.\d+)')
+                                                      .astype(data_type)
+                                                      .unstack()
+                                                      .max(axis=1),
+                                errors='coerce')
     return data_frame.dropna(subset=cols_to_delete)
 
 
