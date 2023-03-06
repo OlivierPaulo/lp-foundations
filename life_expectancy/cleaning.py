@@ -5,14 +5,14 @@ from typing import List, Dict
 import argparse
 import pandas as pd
 
-DIR_PATH = f"{Path(__file__).parent}/data"
+DIR_PATH = Path(__file__).parent
 
 
 def load_data(
-    file_path: str = f"{DIR_PATH}/eu_life_expectancy_raw.tsv",
+    file_path: str = "/data/eu_life_expectancy_raw.tsv",
 ) -> pd.DataFrame:
     """Load data from file and Return a Pandas DataFrame"""
-    return pd.read_csv(Path(file_path), sep="\t")
+    return pd.read_csv(f"{DIR_PATH}/{file_path}", sep="\t")
 
 
 def _apply_unpivot(data_frame: pd.DataFrame) -> pd.DataFrame:
@@ -28,7 +28,7 @@ def _apply_unpivot(data_frame: pd.DataFrame) -> pd.DataFrame:
 
 
 def _apply_data_types(data_frame: pd.DataFrame) -> pd.DataFrame:
-    """Ensure data types defined by type_rules
+    """Ensure data types defined by type_rules, Clean and Extract data using Regex
     Remove NaNs for requested cols"""
     types_rules: Dict[str, object] = {"year": int, "value": float}
     cols_to_delete: List[str] = ["value"]
@@ -52,14 +52,14 @@ def clean_data(data_frame: pd.DataFrame, country: str) -> pd.DataFrame:
 
 def _save_data(data_frame: pd.DataFrame, country: str = "pt") -> None:
     """Function that saves the data into a local CSV file"""
-    data_frame.to_csv(Path(f"{DIR_PATH}/{country}_life_expectancy.csv"), index=False)
+    data_frame.to_csv(f"{DIR_PATH}/data/{country}_life_expectancy.csv", index=False)
 
 
 def main(country: str = "PT") -> None:
     """Main Function which call functions of the data pipeline"""
-    data_frame = load_data()
-    data_frame = clean_data(data_frame, country)
-    _save_data(data_frame)
+    raw_df = load_data()
+    clean_df = clean_data(raw_df, country)
+    _save_data(clean_df)
 
 
 if __name__ == "__main__":  # pragma: no cover
