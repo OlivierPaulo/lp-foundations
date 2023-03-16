@@ -1,6 +1,6 @@
 """Tests for the cleaning module"""
-import pandas as pd
 from unittest.mock import patch
+import pandas as pd
 from life_expectancy.cleaning import load_data, clean_data, save_data, main
 from . import OUTPUT_DIR, FIXTURES_DIR
 

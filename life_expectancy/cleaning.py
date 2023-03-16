@@ -84,8 +84,8 @@ if __name__ == "__main__":  # pragma: no cover
     parser.add_argument(
         "-fn",
         "--file_name",
-        help="Specify the file name to load. Example: cleaning.py -fn data/eu_life_expectancy_raw.tsv",
-        default="eu_life_expectancy_raw.tsv",
+        help="Specify data file name. Example: cleaning.py -fn data/eu_life_expectancy_raw.tsv",
+        default="data/eu_life_expectancy_raw.tsv",
     )
-    args = parser.parse_args()
-    main(**vars(args))
+    arguments = parser.parse_args()
+    main(**vars(arguments))
