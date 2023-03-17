@@ -2,17 +2,9 @@
 
 from pathlib import Path
 from typing import List, Dict
-import argparse
 import pandas as pd
 
 DIR_PATH = Path(__file__).parent
-
-
-def load_data(
-    file_name: str = "data/eu_life_expectancy_raw.tsv",
-) -> pd.DataFrame:
-    """Load data from file and Return a Pandas DataFrame"""
-    return pd.read_csv(DIR_PATH.joinpath(file_name), sep="\t")
 
 
 def _apply_unpivot(data_frame: pd.DataFrame) -> pd.DataFrame:
@@ -48,44 +40,3 @@ def clean_data(data_frame: pd.DataFrame, country: str = "PT") -> pd.DataFrame:
     """Main function to Clean Data and Filter Region"""
     clean_df = data_frame.pipe(_apply_unpivot).pipe(_apply_data_types)
     return clean_df[clean_df.region.str.upper() == country.upper()]
-
-
-def save_data(data_frame: pd.DataFrame, country: str = "pt") -> None:
-    """Function that saves the data into a local CSV file"""
-    data_frame.to_csv(
-        DIR_PATH.joinpath(f"data/{country.lower()}_life_expectancy.csv"), index=False
-    )
-
-
-# def main(country: str = "PT", file_name: str ="") -> None:
-def main(*args, **kwargs) -> None:
-    """Main Function which call functions of the data pipeline"""
-    if args:
-        raw_df = load_data()
-        for country in args:
-            clean_df = clean_data(raw_df, country)
-            save_data(clean_df, country)
-    if kwargs:
-        raw_df = load_data(kwargs["file_name"])
-        for country in kwargs["regions"].split(","):
-            clean_df = clean_data(raw_df, country)
-            save_data(clean_df, country)
-    return clean_df
-
-
-if __name__ == "__main__":  # pragma: no cover
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-R",
-        "--regions",
-        help="Choose the region(s) you want to filter. Example: cleaning.py -R PT,US,FR",
-        default="PT",
-    )
-    parser.add_argument(
-        "-fn",
-        "--file_name",
-        help="Specify data file name. Example: cleaning.py -fn data/eu_life_expectancy_raw.tsv",
-        default="data/eu_life_expectancy_raw.tsv",
-    )
-    arguments = parser.parse_args()
-    main(**vars(arguments))
