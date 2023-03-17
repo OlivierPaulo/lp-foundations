@@ -1,8 +1,8 @@
 """Python 3.11.2"""
 
+import argparse
 from life_expectancy.data import load_data, save_data
 from life_expectancy.cleaning import clean_data
-import argparse
 
 
 def main(*args, **kwargs) -> None:
