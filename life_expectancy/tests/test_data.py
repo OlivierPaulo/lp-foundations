@@ -8,10 +8,11 @@ from . import OUTPUT_DIR, FIXTURES_DIR
 
 def test_load_data():
     """Run unit test of function `load_data`"""
-    pd.testing.assert_frame_equal(
-        load_data(f"{FIXTURES_DIR}/eu_life_expectancy_raw_fixture.tsv"),
-        pd.read_csv(f"{FIXTURES_DIR}/eu_life_expectancy_raw_fixture.tsv", sep="\t"),
+    actual_data = load_data(f"{FIXTURES_DIR}/eu_life_expectancy_raw_fixture.tsv")
+    expected_data = pd.read_csv(
+        f"{FIXTURES_DIR}/eu_life_expectancy_raw_fixture.tsv", sep="\t"
     )
+    pd.testing.assert_frame_equal(actual_data, expected_data)
 
 
 def test_save_data(pt_life_expectancy_expected):
