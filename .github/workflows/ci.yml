@@ -22,10 +22,10 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install .
-        pip install pytest
-        pip install pylint
-    - name: Analysing the code with pytest and pylint
+        pip install pytest pylint black
+    - name: Reformat code with Black, Analyse the code with pytest and pylint
       run: |
+        black $(git ls-files '*.py')
         pytest 
         pylint $(git ls-files '*.py')
         

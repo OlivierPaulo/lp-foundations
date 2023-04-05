@@ -1,18 +1,10 @@
-"""Python 3.10.6"""
+"""Python 3.11.2"""
 
 from pathlib import Path
 from typing import List, Dict
-import argparse
 import pandas as pd
 
 DIR_PATH = Path(__file__).parent
-
-
-def load_data(
-    file_path: str = "/data/eu_life_expectancy_raw.tsv",
-) -> pd.DataFrame:
-    """Load data from file and Return a Pandas DataFrame"""
-    return pd.read_csv(f"{DIR_PATH}/{file_path}", sep="\t")
 
 
 def _apply_unpivot(data_frame: pd.DataFrame) -> pd.DataFrame:
@@ -44,34 +36,7 @@ def _apply_data_types(data_frame: pd.DataFrame) -> pd.DataFrame:
     return data_frame.dropna(subset=cols_to_delete)
 
 
-def clean_data(data_frame: pd.DataFrame, country: str) -> pd.DataFrame:
+def clean_data(data_frame: pd.DataFrame, country: str = "PT") -> pd.DataFrame:
     """Main function to Clean Data and Filter Region"""
-    clean_df = _apply_data_types(_apply_unpivot(data_frame))
+    clean_df = data_frame.pipe(_apply_unpivot).pipe(_apply_data_types)
     return clean_df[clean_df.region.str.upper() == country.upper()]
-
-
-def _save_data(data_frame: pd.DataFrame, country: str = "pt") -> None:
-    """Function that saves the data into a local CSV file"""
-    data_frame.to_csv(f"{DIR_PATH}/data/{country}_life_expectancy.csv", index=False)
-
-
-def main(country: str = "PT") -> None:
-    """Main Function which call functions of the data pipeline"""
-    raw_df = load_data()
-    clean_df = clean_data(raw_df, country)
-    _save_data(clean_df)
-
-
-if __name__ == "__main__":  # pragma: no cover
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-R",
-        "--regions",
-        help="Choose the region(s) you want to filter. Example : cleaning.py -R PT,US,FR",
-    )
-    args = parser.parse_args()
-    if args.regions:
-        for region in str(args.regions).split(","):
-            main(region)
-    else:
-        main("PT")
