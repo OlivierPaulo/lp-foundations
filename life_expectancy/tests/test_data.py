@@ -15,9 +15,8 @@ def test_load_data(eu_life_expectancy_expected):
 
 def test_save_data(pt_life_expectancy_expected):
     """Run unit test of function `save_data`"""
+    expected_data = OUTPUT_DIR.joinpath("pt_life_expectancy.csv")
     with patch.object(pt_life_expectancy_expected, "to_csv") as to_csv_mock:
         to_csv_mock.side_effect = print("Mocking saving data...")
         save_data(pt_life_expectancy_expected)
-        to_csv_mock.assert_called_with(
-            OUTPUT_DIR.joinpath("pt_life_expectancy.csv"), index=False
-        )
+        to_csv_mock.assert_called_with(expected_data, index=False)
