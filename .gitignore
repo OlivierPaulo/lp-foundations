@@ -167,4 +167,4 @@ cython_debug/
 assignment_*/
 
 # Raw Data
-/life_expectancy/data
+data/
