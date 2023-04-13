@@ -1,37 +1,45 @@
-"""Python 3.11.2"""
-
 import argparse
-from life_expectancy.data import load_data, save_data
-from life_expectancy.cleaning import clean_data
+from life_expectancy.data import DataIOLoadJSON, DataIOLoadTSV
 
 
 def main(*args, **kwargs) -> None:
     """Main Function which call functions of the data pipeline"""
     if args:
-        raw_df = load_data()
+        data_pipe_tsv = DataIOLoadTSV()
         for country in args:
-            clean_df = clean_data(raw_df, country)
-            save_data(clean_df, country)
+            clean_df = data_pipe_tsv.clean_data(data_pipe_tsv.load_data(), country)
+            data_pipe_tsv.save_data(clean_df, country)
     if kwargs:
-        raw_df = load_data(kwargs["file_name"])
-        for country in kwargs["regions"].split(","):
-            clean_df = clean_data(raw_df, country)
-            save_data(clean_df, country)
+        if kwargs["file_name"].split(".")[-1].lower() == "tsv":
+            data_pipe_tsv = DataIOLoadTSV()
+            for country in kwargs["countries"].split(","):
+                clean_df = data_pipe_tsv.clean_data(
+                    data_pipe_tsv.load_data(kwargs["file_name"]), country
+                )
+                data_pipe_tsv.save_data(clean_df, country)
+
+        if kwargs["file_name"].split(".")[-1].lower() == "json":
+            data_pipe_json = DataIOLoadJSON()
+            for country in kwargs["countries"].split(","):
+                clean_df = data_pipe_json.clean_data(
+                    data_pipe_json.load_data(kwargs["file_name"]), country
+                )
+                data_pipe_json.save_data(clean_df, country)
     return clean_df
 
 
 if __name__ == "__main__":  # pragma: no cover
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-R",
-        "--regions",
-        help="Choose the region(s) you want to filter. Example: cleaning.py -R PT,US,FR",
+        "-c",
+        "--countries",
+        help="Choose the countries(s) you want to filter. Example: pipeline.py -c PT,US,FR",
         default="PT",
     )
     parser.add_argument(
         "-fn",
         "--file_name",
-        help="Specify data file name. Example: cleaning.py -fn data/eu_life_expectancy_raw.tsv",
+        help="Specify data file path. Example: pipeline.py -fn data/eu_life_expectancy_raw.tsv",
         default="data/eu_life_expectancy_raw.tsv",
     )
     arguments = parser.parse_args()
