@@ -1,32 +1,24 @@
 """Pipeline module"""
 
 import argparse
-from life_expectancy.data import DataIOLoadJSON, DataIOLoadTSV
+from life_expectancy.context import Pipeline
 
 
 def main(*args, **kwargs) -> None:
-    """Main Function which call functions of the data pipeline"""
+    """Main Function which call functions of the context pipeline"""
+    print(f"args: {args}")
+    print(f"kwargs: {kwargs}")
+    print(kwargs["countries"].split(","))
     if args:
-        data_pipe_tsv = DataIOLoadTSV()
-        for country in args:
-            clean_df = data_pipe_tsv.clean_data(data_pipe_tsv.load_data(), country)
-            data_pipe_tsv.save_data(clean_df, country)
-    if kwargs:
-        if kwargs["file_name"].split(".")[-1].lower() == "tsv":
-            data_pipe_tsv = DataIOLoadTSV()
-            for country in kwargs["countries"].split(","):
-                clean_df = data_pipe_tsv.clean_data(
-                    data_pipe_tsv.load_data(kwargs["file_name"]), country
-                )
-                data_pipe_tsv.save_data(clean_df, country)
+        print("GO Args")
+        clean_df = Pipeline().executeStrategy()
 
-        if kwargs["file_name"].split(".")[-1].lower() == "json":
-            data_pipe_json = DataIOLoadJSON()
-            for country in kwargs["countries"].split(","):
-                clean_df = data_pipe_json.clean_data(
-                    data_pipe_json.load_data(kwargs["file_name"]), country
-                )
-                data_pipe_json.save_data(clean_df, country)
+    if kwargs:
+        print("GO Kwargs")
+        clean_df = Pipeline(
+            kwargs["file_name"], kwargs["countries"].split(",")
+        ).executeStrategy()
+
     return clean_df
 
 

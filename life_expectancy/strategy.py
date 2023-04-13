@@ -1,0 +1,111 @@
+"""Strategy module - Strategy Pattern"""
+
+from abc import ABC, abstractmethod
+from pathlib import Path
+from typing import List, Dict
+import pandas as pd
+
+DIR_PATH = Path(__file__).parent
+
+
+## Strategy interface
+class Strategy(ABC):
+    @abstractmethod
+    def load_data(self, file_name: str) -> pd.DataFrame:
+        pass
+
+    @abstractmethod
+    def clean_data(self, data_frame: pd.DataFrame, country: str) -> str:
+        pass
+
+    @abstractmethod
+    def execute(self, file_name, country) -> pd.DataFrame:
+        pass
+
+    def save_data(self, data_frame: pd.DataFrame, country: str = "pt") -> None:
+        """Function that saves the data into a local CSV file"""
+        data_frame.to_csv(
+            DIR_PATH.joinpath(f"data/{country.lower()}_life_expectancy.csv"),
+            index=False,
+        )
+
+
+## Concrete strategies
+class FileTSV(Strategy):
+    def load_data(
+        self,
+        file_name: str = "data/eu_life_expectancy_raw.tsv",
+    ) -> pd.DataFrame:
+        """Load data from file and Return a Pandas DataFrame"""
+        return pd.read_csv(DIR_PATH.joinpath(file_name), sep="\t")
+
+    def _apply_unpivot(self, data_frame: pd.DataFrame) -> pd.DataFrame:
+        """Return Dataframe with the unpivots dates and desired columns"""
+        id_vars = data_frame.columns[0]
+        col_names = ["unit", "sex", "age", "region", "year", "value"]
+        unpivot_df = pd.melt(frame=data_frame, id_vars=id_vars)
+        unpivot_df[id_vars.split(",")] = unpivot_df[id_vars].str.split(",", expand=True)
+        unpivot_df[col_names] = pd.concat(
+            [unpivot_df[id_vars.split(",")], unpivot_df[["variable", "value"]]], axis=1
+        )
+        return unpivot_df[col_names]
+
+    def _apply_data_types(self, data_frame: pd.DataFrame) -> pd.DataFrame:
+        """Ensure data types defined by type_rules, Clean and Extract data using Regex
+        Remove NaNs for requested cols"""
+        types_rules: Dict[str, object] = {"year": int, "value": float}
+        cols_to_delete: List[str] = ["value"]
+        for column, data_type in types_rules.items():
+            data_frame[column] = pd.to_numeric(
+                data_frame[column]
+                .str.extractall(r"(\d+.\d+)")
+                .astype(data_type)
+                .unstack()
+                .max(axis=1),
+                errors="coerce",
+            )
+        return data_frame.dropna(subset=cols_to_delete)
+
+    def clean_data(self, data_frame: pd.DataFrame, country: str = "PT") -> pd.DataFrame:
+        """Main function to Clean Data and Filter Countries"""
+        clean_df = data_frame.pipe(self._apply_unpivot).pipe(self._apply_data_types)
+        return clean_df[clean_df["region"].str.upper() == country.upper()]
+
+    def execute(self, source_file, country) -> pd.DataFrame:
+        raw_df = self.load_data(source_file)
+        clean_df = self.clean_data(raw_df, country)
+        self.save_data(clean_df, country)
+        return clean_df
+
+
+class FileJSON(Strategy):
+    def load_data(
+        self,
+        file_name: str = "data/eurostat_life_expect.json",
+    ) -> pd.DataFrame:
+        """Load data from file and Return a Pandas DataFrame"""
+        return pd.read_json(DIR_PATH.joinpath(file_name))
+
+    def clean_data(self, data_frame: pd.DataFrame, country: str = "PT") -> pd.DataFrame:
+        """Main function to Clean Data and Filter Countries"""
+        return data_frame[data_frame["country"].str.upper() == country.upper()]
+
+    def execute(self, source_file, country) -> pd.DataFrame:
+        raw_df = self.load_data(source_file)
+        clean_df = self.clean_data(raw_df, country)
+        self.save_data(clean_df, country)
+        return clean_df
+
+
+class Default(Strategy):
+    def load_data(self) -> str:
+        return FileTSV().load_data()
+
+    def clean_data(self) -> str:
+        return FileTSV().clean_data()
+
+    def execute(self) -> pd.DataFrame:
+        raw_df = self.load_data()
+        clean_df = self.clean_data(raw_df)
+        self.save_data(clean_df)
+        return clean_df
