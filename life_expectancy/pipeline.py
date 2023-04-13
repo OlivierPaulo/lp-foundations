@@ -1,3 +1,5 @@
+"""Pipeline module"""
+
 import argparse
 from life_expectancy.data import DataIOLoadJSON, DataIOLoadTSV
 

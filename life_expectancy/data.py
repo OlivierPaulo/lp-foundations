@@ -1,8 +1,8 @@
-"""Python 3.11.2"""
+"""Data module"""
 
 from pathlib import Path
-import pandas as pd
 from typing import List, Dict
+import pandas as pd
 
 DIR_PATH = Path(__file__).parent
 
@@ -25,11 +25,11 @@ class DataIOLoadTSV(DataIO):
     """Sub Class to Load specific format of input files (here TSV)"""
 
     def __init__(self):
-        super().__init__()
+        super()
 
     def load_data(
         self,
-        file_name: str = "data/eu_life_expectancy_raw.tsv",
+        file_name: str | Path = "data/eu_life_expectancy_raw.tsv",
     ) -> pd.DataFrame:
         """Load data from file and Return a Pandas DataFrame"""
         return pd.read_csv(DIR_PATH.joinpath(file_name), sep="\t")
@@ -64,22 +64,22 @@ class DataIOLoadTSV(DataIO):
     def clean_data(self, data_frame: pd.DataFrame, country: str = "PT") -> pd.DataFrame:
         """Main function to Clean Data and Filter Countries"""
         clean_df = data_frame.pipe(self._apply_unpivot).pipe(self._apply_data_types)
-        return clean_df[clean_df.region.str.upper() == country.upper()]
+        return clean_df[clean_df["region"].str.upper() == country.upper()]
 
 
 class DataIOLoadJSON(DataIO):
     """Sub Class to Load specific format of input files (here TSV)"""
 
     def __init__(self):
-        super().__init__()
+        super()
 
     def load_data(
         self,
-        file_name: str = "data/eurostat_life_expect.json",
+        file_name: str | Path = "data/eurostat_life_expect.json",
     ) -> pd.DataFrame:
         """Load data from file and Return a Pandas DataFrame"""
         return pd.read_json(DIR_PATH.joinpath(file_name))
 
     def clean_data(self, data_frame: pd.DataFrame, country: str = "PT") -> pd.DataFrame:
         """Main function to Clean Data and Filter Countries"""
-        return data_frame[data_frame.region.str.upper() == country.upper()]
+        return data_frame[data_frame["country"].str.upper() == country.upper()]
