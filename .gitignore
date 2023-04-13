@@ -166,5 +166,5 @@ cython_debug/
 # Ignoring assignment_x folders
 assignment_*/
 
-# Raw Data
+# Raw Json Data
 data/
