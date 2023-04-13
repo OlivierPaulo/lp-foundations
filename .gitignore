@@ -167,4 +167,4 @@ cython_debug/
 assignment_*/
 
 # Raw Json Data
-data/
+data/eurostat_life_expect.json
