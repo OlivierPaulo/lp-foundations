@@ -10,6 +10,8 @@ DIR_PATH = Path(__file__).parent
 class DataIO:
     """Data Class context to load and save data"""
 
+    # pylint: disable=too-few-public-methods
+
     def __init__(self) -> None:
         pass
 
@@ -29,7 +31,7 @@ class DataIOLoadTSV(DataIO):
 
     def load_data(
         self,
-        file_name: str | Path = "data/eu_life_expectancy_raw.tsv",
+        file_name: str = "data/eu_life_expectancy_raw.tsv",
     ) -> pd.DataFrame:
         """Load data from file and Return a Pandas DataFrame"""
         return pd.read_csv(DIR_PATH.joinpath(file_name), sep="\t")
@@ -75,7 +77,7 @@ class DataIOLoadJSON(DataIO):
 
     def load_data(
         self,
-        file_name: str | Path = "data/eurostat_life_expect.json",
+        file_name: str = "data/eurostat_life_expect.json",
     ) -> pd.DataFrame:
         """Load data from file and Return a Pandas DataFrame"""
         return pd.read_json(DIR_PATH.joinpath(file_name))
