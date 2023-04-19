@@ -6,18 +6,13 @@ from life_expectancy.context import Pipeline
 
 def main(*args, **kwargs) -> None:
     """Main Function which call functions of the context pipeline"""
-    print(f"args: {args}")
-    print(f"kwargs: {kwargs}")
-    print(kwargs["countries"].split(","))
+
     if args:
-        print("GO Args")
         clean_df = Pipeline().executeStrategy()
 
     if kwargs:
-        print("GO Kwargs")
-        clean_df = Pipeline(
-            kwargs["file_name"], kwargs["countries"].split(",")
-        ).executeStrategy()
+        for country in kwargs["countries"].split(","):
+            clean_df = Pipeline(kwargs["file_name"], country).executeStrategy()
 
     return clean_df
 
