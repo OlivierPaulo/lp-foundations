@@ -1,25 +1,30 @@
 """Context module pipeline - Strategy Pattern"""
 
-from life_expectancy.strategy import Strategy, FileTSV, FileJSON, Default
-from typing import Dict
+from typing import List, Dict
 import pandas as pd
+from life_expectancy.strategy import Strategy, FileTSV, FileJSON, Default
 
 
 class Pipeline:
+    """Context pipeline Class to apply then strategies"""
+
+    # pylint: disable=too-few-public-methods
+
     def __init__(
-        self, source_file: str = "data/eu_life_expectancy_raw.tsv", country: str = "PT"
+        self,
+        source_file: str = "data/eu_life_expectancy_raw.tsv",
+        countries: List[str] = ["PT"],
     ):
-        self.source_file: str = source_file
-        self.country: str = country
+        self.source_file = source_file
+        self.countries = countries
         self.strategies: Dict[str:Strategy] = {
             "TSV": FileTSV(),
             "JSON": FileJSON(),
             None: Default(),
         }
+        self.strategy: Strategy = Default()
 
-    def setStrategy(self, strategy: Strategy = Default()) -> None:
-        self.strategy = strategy
-
-    def executeStrategy(self) -> pd.DataFrame:
-        self.setStrategy(self.strategies[self.source_file.split(".")[-1].upper()])
-        return self.strategy.execute(self.source_file, self.country)
+    def execute_strategy(self) -> pd.DataFrame:
+        """Class method to execute the pipeline strategy"""
+        self.strategy = self.strategies[self.source_file.split(".")[-1].upper()]
+        return self.strategy.execute(self.source_file, self.countries)

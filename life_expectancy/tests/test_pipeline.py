@@ -5,7 +5,7 @@ from life_expectancy.pipeline import main
 from . import FIXTURES_DIR
 
 
-@patch("life_expectancy.pipeline.Pipeline.Default.save_data")
+@patch("life_expectancy.strategy.Default.save_data")
 def test_main(mock, pt_life_expectancy_expected):
     """Run the `main` function and compare the output to the expected output"""
     mock.side_effect = print("Mocking save data")

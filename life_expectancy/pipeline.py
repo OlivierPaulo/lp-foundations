@@ -8,11 +8,12 @@ def main(*args, **kwargs) -> None:
     """Main Function which call functions of the context pipeline"""
 
     if args:
-        clean_df = Pipeline().executeStrategy()
+        clean_df = Pipeline().execute_strategy()
 
     if kwargs:
-        for country in kwargs["countries"].split(","):
-            clean_df = Pipeline(kwargs["file_name"], country).executeStrategy()
+        clean_df = Pipeline(
+            kwargs["file_name"], kwargs["countries"].split(",")
+        ).execute_strategy()
 
     return clean_df
 

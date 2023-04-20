@@ -10,34 +10,42 @@ DIR_PATH = Path(__file__).parent
 
 ## Strategy interface
 class Strategy(ABC):
-    @abstractmethod
-    def load_data(self, file_name: str) -> pd.DataFrame:
-        pass
+    """Abstract Class to define Stategies classes"""
 
     @abstractmethod
-    def clean_data(self, data_frame: pd.DataFrame, country: str) -> str:
-        pass
+    def load_data(self, source_file: str) -> pd.DataFrame:
+        """Abstract `load_data` class method of Strategy class"""
 
     @abstractmethod
-    def execute(self, file_name, country) -> pd.DataFrame:
-        pass
+    def clean_data(self, data_frame: pd.DataFrame, countries: List[str]) -> str:
+        """Abstract `clean_data` class method of Strategy class"""
 
-    def save_data(self, data_frame: pd.DataFrame, country: str = "pt") -> None:
+    @abstractmethod
+    def execute(self, source_file: str, countries: List[str]) -> pd.DataFrame:
+        """Abstract `execute` class method of Strategy class"""
+
+    def save_data(
+        self, data_frame: pd.DataFrame, countries: List[str] = ["pt"]
+    ) -> None:
         """Function that saves the data into a local CSV file"""
         data_frame.to_csv(
-            DIR_PATH.joinpath(f"data/{country.lower()}_life_expectancy.csv"),
+            DIR_PATH.joinpath(
+                f"data/{('-').join(countries).lower()}_life_expectancy.csv"
+            ),
             index=False,
         )
 
 
 ## Concrete strategies
 class FileTSV(Strategy):
+    """Sub Class FileTSV of Abstract class Strategy to handle TSV files"""
+
     def load_data(
         self,
-        file_name: str = "data/eu_life_expectancy_raw.tsv",
+        source_file: str = "data/eu_life_expectancy_raw.tsv",
     ) -> pd.DataFrame:
         """Load data from file and Return a Pandas DataFrame"""
-        return pd.read_csv(DIR_PATH.joinpath(file_name), sep="\t")
+        return pd.read_csv(DIR_PATH.joinpath(source_file), sep="\t")
 
     def _apply_unpivot(self, data_frame: pd.DataFrame) -> pd.DataFrame:
         """Return Dataframe with the unpivots dates and desired columns"""
@@ -66,46 +74,83 @@ class FileTSV(Strategy):
             )
         return data_frame.dropna(subset=cols_to_delete)
 
-    def clean_data(self, data_frame: pd.DataFrame, country: str = "PT") -> pd.DataFrame:
-        """Main function to Clean Data and Filter Countries"""
+    def clean_data(
+        self, data_frame: pd.DataFrame, countries: List[str] = ["PT"]
+    ) -> pd.DataFrame:
+        """Function to Clean Data and Filter Countries"""
         clean_df = data_frame.pipe(self._apply_unpivot).pipe(self._apply_data_types)
-        return clean_df[clean_df["region"].str.upper() == country.upper()]
+        return clean_df[
+            clean_df["region"]
+            .str.upper()
+            .isin([country.upper() for country in countries])
+        ]
 
-    def execute(self, source_file, country) -> pd.DataFrame:
+    def execute(
+        self,
+        source_file: str = "data/eu_life_expectancy_raw.tsv",
+        countries: List[str] = ["PT"],
+    ) -> pd.DataFrame:
+        """Function to execute FileTSV pipe"""
         raw_df = self.load_data(source_file)
-        clean_df = self.clean_data(raw_df, country)
-        self.save_data(clean_df, country)
+        clean_df = self.clean_data(raw_df, countries)
+        self.save_data(clean_df, countries)
         return clean_df
 
 
 class FileJSON(Strategy):
+    """Sub Class FileJSON of Abstract class Strategy to handle JSON files"""
+
     def load_data(
         self,
-        file_name: str = "data/eurostat_life_expect.json",
+        source_file: str = "data/eurostat_life_expect.json",
     ) -> pd.DataFrame:
         """Load data from file and Return a Pandas DataFrame"""
-        return pd.read_json(DIR_PATH.joinpath(file_name))
+        return pd.read_json(DIR_PATH.joinpath(source_file))
 
-    def clean_data(self, data_frame: pd.DataFrame, country: str = "PT") -> pd.DataFrame:
-        """Main function to Clean Data and Filter Countries"""
-        return data_frame[data_frame["country"].str.upper() == country.upper()]
+    def clean_data(
+        self, data_frame: pd.DataFrame, countries: List[str] = ["PT"]
+    ) -> pd.DataFrame:
+        """Function to Clean Data and Filter Countries"""
+        clean_df = data_frame[
+            data_frame["country"]
+            .str.upper()
+            .isin([country.upper() for country in countries])
+        ]
+        clean_df = clean_df.mask(clean_df == "")
+        return clean_df
 
-    def execute(self, source_file, country) -> pd.DataFrame:
+    def execute(
+        self,
+        source_file: str = "data/eurostat_life_expect.json",
+        countries: List[str] = ["PT"],
+    ) -> pd.DataFrame:
+        """Function to execute FileJSON pipe"""
         raw_df = self.load_data(source_file)
-        clean_df = self.clean_data(raw_df, country)
-        self.save_data(clean_df, country)
+        clean_df = self.clean_data(raw_df, countries)
+        self.save_data(clean_df, countries)
         return clean_df
 
 
 class Default(Strategy):
-    def load_data(self) -> str:
-        return FileTSV().load_data()
+    """Sub Class Default of Abstract class Strategy for default Strategy"""
 
-    def clean_data(self) -> str:
-        return FileTSV().clean_data()
+    def load_data(
+        self,
+        source_file: str = "data/eu_life_expectancy_raw.tsv",
+    ) -> pd.DataFrame:
+        """Load data from file and Return a Pandas DataFrame for default Strategy"""
+        return FileTSV().load_data(source_file)
 
-    def execute(self) -> pd.DataFrame:
-        raw_df = self.load_data()
-        clean_df = self.clean_data(raw_df)
-        self.save_data(clean_df)
-        return clean_df
+    def clean_data(
+        self, data_frame: pd.DataFrame, countries: List[str] = ["PT"]
+    ) -> pd.DataFrame:
+        """Function to Clean Data and Filter Countries for default Strategy"""
+        return FileTSV().clean_data(data_frame, countries)
+
+    def execute(
+        self,
+        source_file: str = "data/eu_life_expectancy_raw.tsv",
+        countries: List[str] = ["PT"],
+    ) -> pd.DataFrame:
+        """Function to execute Default pipe"""
+        return FileTSV().execute(source_file, countries)
