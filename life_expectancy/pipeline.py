@@ -2,6 +2,7 @@
 
 import argparse
 from life_expectancy.context import Pipeline
+from life_expectancy.strategy import Country
 
 
 def main(*args, **kwargs) -> None:
@@ -12,7 +13,8 @@ def main(*args, **kwargs) -> None:
 
     if kwargs:
         clean_df = Pipeline(
-            kwargs["file_name"], kwargs["countries"].split(",")
+            kwargs["file_name"],
+            [Country[country] for country in kwargs["countries"].split(",")],
         ).execute_strategy()
 
     return clean_df

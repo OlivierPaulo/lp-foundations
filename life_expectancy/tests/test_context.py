@@ -8,7 +8,7 @@ from . import FIXTURES_DIR
 
 @patch("life_expectancy.strategy.Default.save_data")
 def test_execute_strategy(mock, pt_life_expectancy_expected):
-    """Run the `main` function and compare the output to the expected output"""
+    """Run the `execute_strategy` function and compare the output to the expected output"""
     mock.side_effect = print("Mocking save data")
     actual_data = (
         Pipeline(source_file=f"{FIXTURES_DIR}/eu_life_expectancy_raw_fixture.tsv")

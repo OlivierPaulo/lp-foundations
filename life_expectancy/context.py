@@ -2,18 +2,18 @@
 
 from typing import List, Dict
 import pandas as pd
-from life_expectancy.strategy import Strategy, FileTSV, FileJSON, Default
+from life_expectancy.strategy import Strategy, FileTSV, FileJSON, Default, Country
 
 
 class Pipeline:
     """Context pipeline Class to apply then strategies"""
 
-    # pylint: disable=too-few-public-methods
+    # pylint: disable=too-few-public-methods, dangerous-default-value
 
     def __init__(
         self,
         source_file: str = "data/eu_life_expectancy_raw.tsv",
-        countries: List[str] = ["PT"],
+        countries: List[Country] = [Country.PT],
     ):
         self.source_file = source_file
         self.countries = countries

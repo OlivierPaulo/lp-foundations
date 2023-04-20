@@ -2,7 +2,7 @@
 
 from unittest.mock import patch
 import pandas as pd
-from life_expectancy.strategy import FileJSON, FileTSV, Default
+from life_expectancy.strategy import FileJSON, FileTSV, Default, Country
 from . import FIXTURES_DIR, OUTPUT_DIR
 
 
@@ -128,3 +128,10 @@ def test_execute_default(mock, pt_life_expectancy_expected):
     ).reset_index(drop=True)
     expected_data = pt_life_expectancy_expected.reset_index(drop=True)
     pd.testing.assert_frame_equal(actual_data.reset_index(drop=True), expected_data)
+
+
+def test_possible_countries():
+    """Function that test the possible countries"""
+    actual_possible_contries = Country.possible_countries()
+    expected_possible_countries = ["PT", "FR", "NL"]
+    assert actual_possible_contries == expected_possible_countries
