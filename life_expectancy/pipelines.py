@@ -1,10 +1,11 @@
-"""Strategy module - Strategy Pattern"""
+"""Context module pipeline - Strategy Pattern"""
 
+from typing import List, Dict
+import pandas as pd
 from abc import ABC, abstractmethod
 from pathlib import Path
-from enum import Enum
+from enum import Enum, auto
 from dataclasses import dataclass
-from typing import List, Dict
 import pandas as pd
 
 
@@ -15,50 +16,105 @@ DIR_PATH = Path(__file__).parent
 class Country(Enum):
     """Enum sub Class to define countries object"""
 
-    # pylint: disable=invalid-name, no-method-argument
-    PT: str = "PT"
-    FR: str = "FR"
-    NL: str = "NL"
+    AL = auto()
+    AM = auto()
+    AT = auto()
+    AZ = auto()
+    BE = auto()
+    BG = auto()
+    BY = auto()
+    CH = auto()
+    CY = auto()
+    CZ = auto()
+    DE = auto()
+    DK = auto()
+    EE = auto()
+    EL = auto()
+    ES = auto()
+    FI = auto()
+    FR = auto()
+    FX = auto()
+    GE = auto()
+    HR = auto()
+    HU = auto()
+    IE = auto()
+    IS = auto()
+    IT = auto()
+    LI = auto()
+    LT = auto()
+    LU = auto()
+    LV = auto()
+    MD = auto()
+    ME = auto()
+    MK = auto()
+    MT = auto()
+    NL = auto()
+    NO = auto()
+    PL = auto()
+    PT = auto()
+    RO = auto()
+    RS = auto()
+    RU = auto()
+    SE = auto()
+    SI = auto()
+    SK = auto()
+    SM = auto()
+    TR = auto()
+    UA = auto()
+    UK = auto()
+    XK = auto()
 
-    def possible_countries() -> List[str]:
+    @classmethod
+    def possible_countries(self) -> list[str]:
         """Class method that return all the possible countries"""
         return [country.value for country in Country]
 
 
-## Strategy interface
 class Strategy(ABC):
     """Abstract Class to define Stategies classes"""
 
-    # pylint: disable=dangerous-default-value
     @abstractmethod
     def load_data(self, source_file: str) -> pd.DataFrame:
         """Abstract `load_data` class method of Strategy class"""
 
     @abstractmethod
-    def clean_data(self, data_frame: pd.DataFrame, countries: List[Country]) -> str:
+    def clean_data(self, data_frame: pd.DataFrame, countries: list[Country]) -> str:
         """Abstract `clean_data` class method of Strategy class"""
 
     @abstractmethod
-    def execute(self, source_file: str, countries: List[Country]) -> pd.DataFrame:
+    def execute(self, source_file: str, countries: list[Country]) -> pd.DataFrame:
         """Abstract `execute` class method of Strategy class"""
 
-    def save_data(
-        self, data_frame: pd.DataFrame, countries: List[Country] = [Country.PT]
-    ) -> None:
+    def save_data(self, data_frame: pd.DataFrame, countries: list[Country]) -> None:
         """Function that saves the data into a local CSV file"""
-        data_frame.to_csv(
-            DIR_PATH.joinpath(
-                f"data/{('-').join([c.value for c in countries]).lower()}_life_expectancy.csv"
-            ),
-            index=False,
-        )
+        if not countries:
+            data_frame.to_csv(
+                DIR_PATH.joinpath(f"data/eu_life_expectancy.csv"),
+                index=False,
+            )
+        else:
+            data_frame.to_csv(
+                DIR_PATH.joinpath(
+                    f"data/{('-').join([c.value for c in countries]).lower()}_life_expectancy.csv"
+                ),
+                index=False,
+            )
+
+    def execute(
+        self,
+        source_file: str = "data/eu_life_expectancy_raw.tsv",
+        countries: list[Country] = None,
+    ) -> pd.DataFrame:
+        """Function to execute pipeline"""
+        raw_df = self.load_data(source_file)
+        clean_df = self.clean_data(raw_df, countries)
+        self.save_data(clean_df, countries)
+        return clean_df
 
 
-## Concrete strategies
 class FileTSV(Strategy):
-    """Sub Class FileTSV of Abstract class Strategy to handle TSV files"""
+    """ETL for TSV files"""
 
-    # pylint: disable=dangerous-default-value
     def load_data(
         self,
         source_file: str = "data/eu_life_expectancy_raw.tsv",
@@ -94,32 +150,22 @@ class FileTSV(Strategy):
         return data_frame.dropna(subset=cols_to_delete)
 
     def clean_data(
-        self, data_frame: pd.DataFrame, countries: List[Country] = [Country.PT]
+        self, data_frame: pd.DataFrame, countries: list[Country]
     ) -> pd.DataFrame:
         """Function to Clean Data and Filter Countries"""
         clean_df = data_frame.pipe(self._apply_unpivot).pipe(self._apply_data_types)
+        if not countries:
+            return clean_df
         return clean_df[
             clean_df["region"]
             .str.upper()
             .isin([country.value for country in countries])
         ]
 
-    def execute(
-        self,
-        source_file: str = "data/eu_life_expectancy_raw.tsv",
-        countries: List[Country] = [Country.PT],
-    ) -> pd.DataFrame:
-        """Function to execute FileTSV pipe"""
-        raw_df = self.load_data(source_file)
-        clean_df = self.clean_data(raw_df, countries)
-        self.save_data(clean_df, countries)
-        return clean_df
-
 
 class FileJSON(Strategy):
-    """Sub Class FileJSON of Abstract class Strategy to handle JSON files"""
+    """ETL for JSON files"""
 
-    # pylint: disable=dangerous-default-value
     def load_data(
         self,
         source_file: str = "data/eurostat_life_expect.json",
@@ -128,50 +174,40 @@ class FileJSON(Strategy):
         return pd.read_json(DIR_PATH.joinpath(source_file))
 
     def clean_data(
-        self, data_frame: pd.DataFrame, countries: List[Country] = [Country.PT]
+        self, data_frame: pd.DataFrame, countries: list[Country]
     ) -> pd.DataFrame:
         """Function to Clean Data and Filter Countries"""
-        clean_df = data_frame[
-            data_frame["country"]
+        clean_df = data_frame.mask(data_frame == "")
+        if not countries:
+            return clean_df
+        clean_df = clean_df[
+            clean_df["country"]
             .str.upper()
             .isin([country.value for country in countries])
         ]
-        clean_df = clean_df.mask(clean_df == "")
-        return clean_df
-
-    def execute(
-        self,
-        source_file: str = "data/eurostat_life_expect.json",
-        countries: List[Country] = [Country.PT],
-    ) -> pd.DataFrame:
-        """Function to execute FileJSON pipe"""
-        raw_df = self.load_data(source_file)
-        clean_df = self.clean_data(raw_df, countries)
-        self.save_data(clean_df, countries)
         return clean_df
 
 
-class Default(Strategy):
-    """Sub Class Default of Abstract class Strategy for default Strategy"""
+class Pipeline:
+    """Context pipeline Class to apply then strategies"""
 
-    # pylint: disable=dangerous-default-value
-    def load_data(
+    def __init__(
         self,
-        source_file: str = "data/eu_life_expectancy_raw.tsv",
-    ) -> pd.DataFrame:
-        """Load data from file and Return a Pandas DataFrame for default Strategy"""
-        return FileTSV().load_data(source_file)
+        source_file: Path | str = "data/eu_life_expectancy_raw.tsv",
+        countries: list[Country] = None,
+    ):
+        self.source_file = source_file
+        self.countries = countries
+        self.strategies: Dict[str:Strategy] = {
+            "TSV": FileTSV(),
+            "JSON": FileJSON(),
+            None: FileTSV(),
+        }
+        self.strategy: Strategy = FileTSV()
 
-    def clean_data(
-        self, data_frame: pd.DataFrame, countries: List[Country] = [Country.PT]
-    ) -> pd.DataFrame:
-        """Function to Clean Data and Filter Countries for default Strategy"""
-        return FileTSV().clean_data(data_frame, countries)
-
-    def execute(
-        self,
-        source_file: str = "data/eu_life_expectancy_raw.tsv",
-        countries: List[Country] = [Country.PT],
-    ) -> pd.DataFrame:
-        """Function to execute Default pipe"""
-        return FileTSV().execute(source_file, countries)
+    def execute_strategy(self) -> pd.DataFrame:
+        """Class method to execute the pipeline strategy"""
+        self.strategy = self.strategies[self.source_file.split(".")[-1].upper()]
+        return self.strategy.execute(
+            source_file=self.source_file, countries=self.countries
+        )
