@@ -189,7 +189,7 @@ class Pipeline:
     # pylint: disable=too-few-public-methods
     def __init__(
         self,
-        source_file: Path | str = "data/eu_life_expectancy_raw.tsv",
+        source_file: str = "data/eu_life_expectancy_raw.tsv",
         countries: list[Country] = None,
     ):
         self.source_file = source_file
