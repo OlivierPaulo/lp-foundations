@@ -24,7 +24,6 @@ if __name__ == "__main__":  # pragma: no cover
         "-c",
         "--countries",
         help="Choose the countries(s) you want to filter. Example: manage.py -c PT,US,FR",
-        # default="PT",
     )
     parser.add_argument(
         "-sf",
