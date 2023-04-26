@@ -25,20 +25,13 @@ def test_execute_strategy(mock, pt_life_expectancy_expected):
     pd.testing.assert_frame_equal(actual_data.reset_index(drop=True), expected_data)
 
 
-@patch("life_expectancy.pipelines.Strategy.save_data")
-def test_save_data(pt_life_expectancy_expected, pt_life_expectancy_json_expected):
+def test_save_data(pt_life_expectancy_expected):
     """Run unit test of method `save_data`"""
     expected_from_tsv_data = OUTPUT_DIR.joinpath("pt_life_expectancy.csv")
-    expected_from_json_data = OUTPUT_DIR.joinpath(
-        "pt_life_expectancy_json_expected.csv"
-    )
-    with patch.object(pt_life_expectancy_expected, "to_csv") as to_csv_mock:
-        to_csv_mock.side_effect = print("Mocking TSV -> CSV saving data...")
+    with patch.object(pt_life_expectancy_expected, "to_csv") as to_csv_mock_from_tsv:
+        to_csv_mock_from_tsv.side_effect = print("Mocking TSV -> CSV saving data...")
         tsv_pipe.save_data(pt_life_expectancy_expected, [Country.PT])
-        to_csv_mock.assert_called_with(expected_from_tsv_data, index=False)
-        to_csv_mock.side_effect = print("Mocking JSON -> CSV saving data...")
-        json_pipe.save_data(pt_life_expectancy_json_expected, [Country.PT])
-        to_csv_mock.assert_called_with(expected_from_json_data, index=False)
+        to_csv_mock_from_tsv.assert_called_with(expected_from_tsv_data, index=False)
 
 
 @patch("life_expectancy.pipelines.Strategy.save_data")

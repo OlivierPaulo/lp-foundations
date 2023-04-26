@@ -1,13 +1,12 @@
 """Context module pipeline - Strategy Pattern"""
 
-from typing import List, Dict
-import pandas as pd
-from abc import ABC, abstractmethod
 from pathlib import Path
-from enum import Enum, auto
+
+from abc import ABC, abstractmethod
+
+from enum import Enum
 from dataclasses import dataclass
 import pandas as pd
-
 
 DIR_PATH = Path(__file__).parent
 
@@ -16,58 +15,58 @@ DIR_PATH = Path(__file__).parent
 class Country(Enum):
     """Enum sub Class to define countries object"""
 
-    AL = auto()
-    AM = auto()
-    AT = auto()
-    AZ = auto()
-    BE = auto()
-    BG = auto()
-    BY = auto()
-    CH = auto()
-    CY = auto()
-    CZ = auto()
-    DE = auto()
-    DK = auto()
-    EE = auto()
-    EL = auto()
-    ES = auto()
-    FI = auto()
-    FR = auto()
-    FX = auto()
-    GE = auto()
-    HR = auto()
-    HU = auto()
-    IE = auto()
-    IS = auto()
-    IT = auto()
-    LI = auto()
-    LT = auto()
-    LU = auto()
-    LV = auto()
-    MD = auto()
-    ME = auto()
-    MK = auto()
-    MT = auto()
-    NL = auto()
-    NO = auto()
-    PL = auto()
-    PT = auto()
-    RO = auto()
-    RS = auto()
-    RU = auto()
-    SE = auto()
-    SI = auto()
-    SK = auto()
-    SM = auto()
-    TR = auto()
-    UA = auto()
-    UK = auto()
-    XK = auto()
+    AL = "AL"
+    AM = "AM"
+    AT = "AT"
+    AZ = "AZ"
+    BE = "BE"
+    BG = "BG"
+    BY = "BY"
+    CH = "CH"
+    CY = "CY"
+    CZ = "CZ"
+    DE = "DE"
+    DK = "DK"
+    EE = "EE"
+    EL = "EL"
+    ES = "ES"
+    FI = "FI"
+    FR = "FR"
+    FX = "FX"
+    GE = "GE"
+    HR = "HR"
+    HU = "HU"
+    IE = "IE"
+    IS = "IS"
+    IT = "IT"
+    LI = "LI"
+    LT = "LT"
+    LU = "LU"
+    LV = "LV"
+    MD = "MD"
+    ME = "ME"
+    MK = "MK"
+    MT = "MT"
+    NL = "NL"
+    NO = "NO"
+    PL = "PL"
+    PT = "PT"
+    RO = "RO"
+    RS = "RS"
+    RU = "RU"
+    SE = "SE"
+    SI = "SI"
+    SK = "SK"
+    SM = "SM"
+    TR = "TR"
+    UA = "UA"
+    UK = "UK"
+    XK = "XK"
 
     @classmethod
-    def possible_countries(self) -> list[str]:
+    def possible_countries(cls) -> list[str]:
         """Class method that return all the possible countries"""
-        return [country.value for country in Country]
+        return [country.value for country in cls]
 
 
 class Strategy(ABC):
@@ -81,15 +80,11 @@ class Strategy(ABC):
     def clean_data(self, data_frame: pd.DataFrame, countries: list[Country]) -> str:
         """Abstract `clean_data` class method of Strategy class"""
 
-    @abstractmethod
-    def execute(self, source_file: str, countries: list[Country]) -> pd.DataFrame:
-        """Abstract `execute` class method of Strategy class"""
-
     def save_data(self, data_frame: pd.DataFrame, countries: list[Country]) -> None:
         """Function that saves the data into a local CSV file"""
         if not countries:
             data_frame.to_csv(
-                DIR_PATH.joinpath(f"data/eu_life_expectancy.csv"),
+                DIR_PATH.joinpath("data/eu_life_expectancy.csv"),
                 index=False,
             )
         else:
@@ -136,8 +131,8 @@ class FileTSV(Strategy):
     def _apply_data_types(self, data_frame: pd.DataFrame) -> pd.DataFrame:
         """Ensure data types defined by type_rules, Clean and Extract data using Regex
         Remove NaNs for requested cols"""
-        types_rules: Dict[str, object] = {"year": int, "value": float}
-        cols_to_delete: List[str] = ["value"]
+        types_rules: dict[str, object] = {"year": int, "value": float}
+        cols_to_delete: list[str] = ["value"]
         for column, data_type in types_rules.items():
             data_frame[column] = pd.to_numeric(
                 data_frame[column]
@@ -191,6 +186,7 @@ class FileJSON(Strategy):
 class Pipeline:
     """Context pipeline Class to apply then strategies"""
 
+    # pylint: disable=too-few-public-methods
     def __init__(
         self,
         source_file: Path | str = "data/eu_life_expectancy_raw.tsv",
@@ -198,7 +194,7 @@ class Pipeline:
     ):
         self.source_file = source_file
         self.countries = countries
-        self.strategies: Dict[str:Strategy] = {
+        self.strategies: dict[str:Strategy] = {
             "TSV": FileTSV(),
             "JSON": FileJSON(),
             None: FileTSV(),
